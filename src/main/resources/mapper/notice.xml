@@ -5,15 +5,46 @@
 
 <mapper namespace="com.mybatis.mapper.NoticeMapper">
     <select id="noticeList" resultType="map" >
-        select n_no, n_title, n_content, n_date, e_no, n_hit
-        from notice
+        select
+        n.n_no, n.n_title, n.n_content, TO_CHAR(n.reg_date, 'YYYY-MM-DD') as reg_date,
+        n.n_hit, n.reg_id, e.E_NAME, NVL(c.n_att, 0) as n_att
+        from notice n join EMPLOYEE e
+        on n.reg_id = e.E_NO
+        left join (select n_no, count(*) as n_att
+        from NOTICE_FILE
+        group by n_no) c
+        on c.n_no = n.n_no
+        <where>
+            <if test = 'gubun!=null'>
+                <choose>
+                    <when test = 'gubun.equals("n_title")'>
+                        AND n_title LIKE '%'||#{keyword}||'%'
+                    </when>
+                    <when test = 'gubun.equals("n_content")'>
+                        AND n_content LIKE '%'||#{keyword}||'%'
+                    </when>
+                    <when test = 'gubun.equals("e_name")'>
+                        AND n.reg_id IN (select e_no from EMPLOYEE where e_name LIKE '%'||#{keyword}||'%')
+                    </when>
+                </choose>
+            </if>
+        </where>
+        order by n_no desc
+    </select>
+
+    <select id="noticeDetail" resultType="map" parameterType="int">
+        select n.n_no, n.n_title, n.n_content, TO_CHAR(n.REG_DATE,'YYYY-MM-DD') as reg_date ,
+               n.n_hit, n.reg_id, nf.n_filename, nf.n_file_no
+        from notice n LEFT JOIN NOTICE_FILE nf
+                                ON n.n_no = nf.n_no
+        WHERE n.n_no = #{value}
     </select>
 
     <insert id="noticeInsert" useGeneratedKeys="true" parameterType="map" keyColumn="n_no" keyProperty ="n_no">
         insert into notice
-            (n_no, n_title, n_content, n_date, e_no, n_hit)
+            (n_no, n_title, n_content, n_hit, reg_date, mod_date, reg_id, mod_id)
         values
-            (notice_seq.nextval,#{n_title},#{n_content},to_char(SYSDATE,'YYYY-MM-DD'),#{e_no},0)
+            (seq_notice_no.nextval,#{n_title},#{n_content}, 0, sysdate, sysdate, #{e_no}, #{e_no})
     </insert>
 
     <insert id="fileUpload" parameterType="java.util.List">
@@ -32,16 +63,19 @@
     </insert>
 
     <insert id="fileUpload2" parameterType="java.util.List">
-        INSERT INTO notice_attachment(na_no, n_no, na_originname, na_newname, na_path, na_size)
-        SELECT na_seq.nextval, A.* from
+        INSERT INTO notice_file(n_file_no, n_no, n_filename, n_fileorigin, n_filepath, reg_date, mod_date, reg_id, mod_id)
+        SELECT seq_noticefile_no.nextval, A.* from
         (
         <foreach collection="list" item="item" index="index" separator="UNION ALL">
             SELECT
             #{item.n_no} as n_no,
-            #{item.na_originname} as na_originname,
-            #{item.na_newname} as na_newname,
-            #{item.na_path} as na_path,
-            #{item.na_size} as na_size
+            #{item.n_filename} as n_filename,
+            #{item.n_fileorigin} as n_fileorigin,
+            #{item.n_filepath} as n_filepath,
+            sysdate as reg_date,
+            sysdate as mod_date,
+            #{item.e_no} as reg_id,
+            #{item.e_no} as mod_id
             from dual
         </foreach>
         ) A
@@ -56,9 +90,15 @@
         set
             n_title=#{n_title},
             n_content=#{n_content},
-            n_date=#{n_date},
-            e_no=#{e_no},
-            n_hit=#{n_hit}
+            mod_date=sysdate,
+            mod_id=#{e_no}
         where n_no = #{n_no}
+    </update>
+
+    <update id="noticeHitCount" parameterType="int">
+        update notice
+        set
+            n_hit = n_hit+1
+        where n_no = #{value}
     </update>
 </mapper>
