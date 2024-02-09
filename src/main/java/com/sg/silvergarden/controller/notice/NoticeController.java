@@ -6,11 +6,22 @@ import com.sg.silvergarden.service.notice.NoticeService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -28,8 +39,20 @@ public class NoticeController {
     @GetMapping("noticeList")
     public String noticeList(@RequestParam Map<String, Object> rmap){
         log.info("noticeList");
+        log.info(rmap.toString());
         List<Map<String, Object>> nlist = null;
         nlist = noticeService.noticeList(rmap);
+        Gson g = new Gson();
+        String temp = g.toJson(nlist);
+        log.info(temp);
+        return temp;
+    }
+    @GetMapping("noticeDetail")
+    public String noticeDetail(int n_no){
+        log.info("noticeDetail");
+        log.info(String.valueOf(n_no));
+        List<Map<String, Object>> nlist = null;
+        nlist = noticeService.noticeDetail(n_no);
         Gson g = new Gson();
         String temp = g.toJson(nlist);
         return temp;
@@ -43,14 +66,13 @@ public class NoticeController {
                 Map<String, Object> nmap = new HashMap<>();
                 String originalFilename = file.getOriginalFilename();
                 String uploadFilename = getCurrentTimeMillisFormat() + "_" + FilenameUtils.getName(originalFilename);
-                String fileSize = String.valueOf(file.getSize()+"byte");
                 File upFile = new File(config.getUploadPath(), uploadFilename);//지정된 경로에 파일저장
                 try {
                     file.transferTo(upFile);
-                    nmap.put("na_path", config.getUploadPath());
-                    nmap.put("na_originname", originalFilename);
-                    nmap.put("na_newname", uploadFilename);
-                    nmap.put("na_size", fileSize);
+                    nmap.put("e_no", pmap.get("e_no"));
+                    nmap.put("n_filepath", config.getUploadPath());
+                    nmap.put("n_fileorigin", originalFilename);
+                    nmap.put("n_filename", uploadFilename);
                     list.add(nmap);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -63,36 +85,6 @@ public class NoticeController {
         result = noticeService.noticeInsert(pmap);
         return result == 1?"ok":"error";
     }
-
-    @GetMapping("uploadTest")
-    public String uploadTest(){
-        List<Map<String, Object>> list = new ArrayList<>();
-        Map<String, Object> nmap = new HashMap<>();
-        nmap.put("n_no", 1604010);
-        nmap.put("na_originname", "원래이름");
-        nmap.put("na_newname", "새로운이름");
-        nmap.put("na_path", "저장소경로");
-        nmap.put("na_size", "파일사이즈");
-        list.add(nmap);
-        nmap = new HashMap<>();
-        nmap.put("n_no", 1604010);
-        nmap.put("na_originname", "원래이름2");
-        nmap.put("na_newname", "새로운이름2");
-        nmap.put("na_path", "저장소경로2");
-        nmap.put("na_size", "파일사이즈2");
-        list.add(nmap);
-        nmap = new HashMap<>();
-        nmap.put("n_no", 1604010);
-        nmap.put("na_originname", "원래이름3");
-        nmap.put("na_newname", "새로운이름3");
-        nmap.put("na_path", "저장소경로3");
-        nmap.put("na_size", "파일사이즈3");
-        list.add(nmap);
-        log.info(list.toString());
-        noticeService.fileUpload(list);
-        return "ok";
-    }
-
 
     @GetMapping("noticeDelete")
     public String noticeDelete(@RequestParam Map<String, Object> pmap){
@@ -114,6 +106,53 @@ public class NoticeController {
         long currentTime = System.currentTimeMillis();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         return dateFormat.format(new Date(currentTime));
+    }
+    @GetMapping("fileDownload")
+    public ResponseEntity<Object> fileDownload(@RequestParam(value="filename") String filename) {
+        log.info("fileDownload 호출 성공");
+        log.info(filename);
+        try {
+            String encodedFilename = URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
+            File file = new File(config.getUploadPath(), URLDecoder.decode(encodedFilename, "UTF-8"));
+
+            HttpHeaders header = new HttpHeaders();
+            header.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+encodedFilename);
+            header.add("Cache-Control", "no-cache, no-store, must-revalidate");
+            header.add("Pragma", "no-cache");
+            header.add("Expires", "0");
+
+            Path path = Paths.get(file.getAbsolutePath());
+            ByteArrayResource resource = null;
+            resource = new ByteArrayResource(Files.readAllBytes(path));
+
+            return ResponseEntity.ok()
+                    .headers(header)
+                    .contentLength(file.length())
+                    .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(resource);
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 다운로드 오류");
+
+        }
+    }// end of fileDownLoad
+    //파일 삭제 처리
+    @PostMapping("deleteFile")
+    public ResponseEntity<String> deleteFile(String filename){
+        File file = null;
+        try {
+            String encodedFilename = URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
+            file = new File(config.getUploadPath() + encodedFilename);
+            if(file.delete() == true){
+                return new ResponseEntity<>("삭제성공!!!", HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

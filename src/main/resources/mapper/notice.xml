@@ -6,14 +6,14 @@
 <mapper namespace="com.mybatis.mapper.NoticeMapper">
     <select id="noticeList" resultType="map" >
         select
-        n.n_no, n.n_title, n.n_content, TO_CHAR(n.reg_date, 'YYYY-MM-DD') as reg_date,
-        n.n_hit, n.reg_id, e.E_NAME, NVL(c.n_att, 0) as n_att
+            n.n_no, n.n_title, n.n_content, TO_CHAR(n.reg_date, 'YYYY-MM-DD') as reg_date,
+            n.n_hit, n.reg_id, e.E_NAME, NVL(c.n_att, 0) as n_att
         from notice n join EMPLOYEE e
-        on n.reg_id = e.E_NO
-        left join (select n_no, count(*) as n_att
-        from NOTICE_FILE
-        group by n_no) c
-        on c.n_no = n.n_no
+                           on n.reg_id = e.E_NO
+                      left join (select n_no, count(*) as n_att
+                                 from NOTICE_FILE
+                                 group by n_no) c
+                                on c.n_no = n.n_no
         <where>
             <if test = 'gubun!=null'>
                 <choose>
@@ -36,7 +36,7 @@
         select n.n_no, n.n_title, n.n_content, TO_CHAR(n.REG_DATE,'YYYY-MM-DD') as reg_date ,
                n.n_hit, n.reg_id, nf.n_filename, nf.n_file_no
         from notice n LEFT JOIN NOTICE_FILE nf
-                                ON n.n_no = nf.n_no
+        ON n.n_no = nf.n_no
         WHERE n.n_no = #{value}
     </select>
 

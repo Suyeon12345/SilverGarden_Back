@@ -5,6 +5,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,11 @@ public class NoticeDao {
         nlist = sqlSessionTemplate.selectList("noticeList",rmap);
         return nlist;
     }
+    public List<Map<String, Object>> noticeDetail(int n_no) {
+        List<Map<String, Object>> nlist = null;
+        nlist = sqlSessionTemplate.selectList("noticeDetail",n_no);
+        return nlist;
+    }
     public int noticeDelete(Map<String, Object>pmap) {
         int result = -1;
         result = sqlSessionTemplate.delete("noticeDelete", pmap);
@@ -30,13 +36,19 @@ public class NoticeDao {
         result = sqlSessionTemplate.update("noticeUpdate", pmap);
         return result;
     }
+    public int noticeHitCount(int n_no){
+        int result = -1;
+        result = sqlSessionTemplate.update("noticeHitCount", n_no);
+        return result;
+    }
+
     public int fileUpload(List<Map<String, Object>> list) {
         int result = -1;
         log.info("fileUpload"+list.toString());
         result = sqlSessionTemplate.insert("fileUpload2", list);
         return result;
     }
-    public int noticeInsert(Map<String, Object> pmap) {
+    public int noticeInsert(Map<String, Object> pmap){
         int result = -1;
         log.info("noticeInsert");
         result = sqlSessionTemplate.insert("noticeInsert", pmap);
