@@ -5,6 +5,7 @@ import com.sg.silvergarden.vo.empcreate.EmpVO;
 import com.sg.silvergarden.vo.empcreate.SignupRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class SignupServiceImpl implements SignupService {
 
     private final SignupDao signupDao;
+    private final PasswordEncoder passwordEncoder;
     @Override
     public EmpVO signup(SignupRequest signupRequest) {
 
@@ -29,7 +31,7 @@ public class SignupServiceImpl implements SignupService {
         emp.setDept_name(signupRequest.getDept_name());
         emp.setE_email(signupRequest.getE_email());
         emp.setE_auth(signupRequest.getE_auth());
-        emp.setE_password(signupRequest.getE_password());
+        emp.setE_password(passwordEncoder.encode(signupRequest.getE_password()));
         return signupDao.save(emp);
     }
 

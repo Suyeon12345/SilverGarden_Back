@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="deptMapper">
+    <select id="deptList" parameterType="map" resultType="map">
+        SELECT c1.cd, c1.cd_value, c3.cd AS ext, c3.cd_value AS ext_value
+        FROM common_cd c1
+                 LEFT OUTER JOIN (
+            SELECT c2.cd, c2.cd_value, c2.high_cd
+            FROM common_cd c2
+            WHERE grp_cd = 'ext01' AND USE_YN = 'Y'
+        ) c3 ON c1.cd = c3.high_cd
+        <where>
+            c1.GRP_CD = 'dept01'AND USE_YN = 'Y'
+            <if test = 'gubun!=null'>
+                <choose>
+                    <when test = 'gubun.equals("D_CD")'>
+                        AND c1.cd LIKE '%'||#{keyword}||'%'
+                    </when>
+                    <when test = 'gubun.equals("D_NAME")'>
+                        AND c1.cd_value LIKE '%'||#{keyword}||'%'
+                    </when>
+                    <when test = 'gubun.equals("D_EXT")'>
+                        AND c3.cd_value LIKE '%'||#{keyword}||'%'
+                    </when>
+                </choose>
+            </if>
+        </where>
+        order by c1.REG_DATE desc
+    </select>
+    <select id="deptCheck" parameterType="map" resultType="map">
+        select CD,CD_VALUE from COMMON_CD
+                        <where>
+                           GRP_CD = 'dept01'
+                         <choose>
+                             <when test="CD!=null">
+                                AND CD = #{CD}
+                             </when>
+                             <when test="CD_VALUE!=null">
+                                AND CD_VALUE = #{CD_VALUE}
+                             </when>
+                         </choose>
+                        </where>
+    </select>
+    <insert id="deptInsert" parameterType="map">
+        INSERT ALL INTO COMMON_CD(CD, GRP_CD, CD_VALUE, USE_YN, REG_DATE, MOD_DATE, REG_ID, MOD_ID, HIGH_CD) VALUES (#{CD}, 'dept01', #{CD_VALUE}, 'Y', SYSDATE, SYSDATE, '', '', '')
+        INTO COMMON_CD(CD, GRP_CD, CD_VALUE, USE_YN, REG_DATE, MOD_DATE, REG_ID, MOD_ID, HIGH_CD) VALUES (to_char('ext01')||lpad(SEQ_EXT_NO.nextval,2,0), 'ext01', #{EXT_VALUE}, 'Y', SYSDATE, SYSDATE, '', '', #{CD})
+        SELECT * FROM DUAL
+    </insert>
+    <update id="deptUpdate" parameterType="map">
+        UPDATE COMMON_CD
+        SET CD = CASE
+                     WHEN GRP_CD = 'dept01' AND CD = #{B_CD} THEN #{CD}
+                     ELSE CD
+            END,
+            CD_VALUE = CASE
+                           WHEN GRP_CD = 'dept01' AND CD = #{B_CD} THEN #{CD_VALUE}
+                           WHEN GRP_CD = 'ext01' AND CD = #{EXT} THEN #{EXT_VALUE}
+                           ELSE CD_VALUE
+                END,
+            HIGH_CD = CASE
+                            WHEN HIGH_CD = #{B_CD} THEN #{CD}
+                            ELSE HIGH_CD
+                                END,
+            MOD_DATE = SYSDATE
+        WHERE (GRP_CD = 'dept01' AND CD = #{B_CD})
+           OR (GRP_CD = 'ext01' AND CD = #{EXT}) OR (GRP_CD = 'ocp01')
+    </update>
+    <update id="deptDelete" parameterType="map">
+        UPDATE COMMON_CD
+        SET USE_YN = CASE
+                         WHEN (GRP_CD = 'dept01' AND CD = #{CD}) OR (GRP_CD = 'ext01' AND CD = #{EXT}) THEN 'N'
+                         ELSE USE_YN
+            END
+        WHERE (GRP_CD = 'dept01' AND CD = #{CD})
+           OR (GRP_CD = 'ext01' AND CD = #{EXT})
+    </update>
+    <select id="jobList" parameterType="map" resultType="map">
+        SELECT CD, CD_VALUE FROM COMMON_CD WHERE GRP_CD = 'ocp01' AND HIGH_CD = #{CD} AND USE_YN = 'Y'
+    </select>
+    <insert id="jobInsert" parameterType="map">
+        INSERT INTO COMMON_CD(CD, GRP_CD, CD_VALUE, USE_YN, REG_DATE, MOD_DATE, REG_ID, MOD_ID, HIGH_CD) VALUES (to_char('ocp02')||lpad(SEQ_OCP_NO.nextval,2,0), 'ocp01', #{CD_VALUE}, 'Y', SYSDATE, SYSDATE, '', '', #{CD})
+    </insert>
+    <update id="jobDelete" parameterType="map">
+        UPDATE COMMON_CD SET USE_YN='N' WHERE GRP_CD = 'ocp01' AND CD = #{CD}
+    </update>
+    <select id="deptemplist" parameterType="map" resultType="map">
+        SELECT E_NO, E_NAME, E_PHONE, E_EMAIL, E_AUTH FROM EMPLOYEE WHERE DEPT_NAME = #{CD_VALUE}
+    </select>
+</mapper>

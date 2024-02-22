@@ -15,14 +15,79 @@
     </resultMap>
 
     <select id="allApprovalList" parameterType="String" resultType="map">
-        select ad.d_no as "d_no", ad.d_title as "d_title", ad.d_content as "d_content", ad.d_status as "d_status",
+        select ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
+               ad.e_no as "e_no", ad.d_category as "d_category",
+               to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
+        from approval_doc ad
+                 left join employee e
+                      on ad.e_no = e.e_no
+        where e.e_no = #{value} and ad.d_status not in('종결', '반려', '임시저장')
+        order by ad.d_no desc
+    </select>
+
+    <select id="approvalWaitList" parameterType="String" resultType="map">
+        select distinct ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
+               ad.e_no as "e_no", ad.d_category as "d_category",
+               to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
+        from approval_doc ad
+                 join employee e
+                           on ad.e_no = e.e_no
+                 join APPROVAL_HISTORY ah
+                           on ah.d_no = ad.D_NO
+        where ah.ap_id = #{value} and ap_result = '대기중' and ad.d_status in('진행중', '상신')
+        order by ad.d_no desc
+    </select>
+
+    <select id="approvalProgressList" parameterType="String" resultType="map">
+        select distinct ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
                ad.e_no as "e_no", ad.d_category as "d_category",
                to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
         from approval_doc ad
                  join employee e
                       on ad.e_no = e.e_no
-        where e.e_no = #{value}
+                 join APPROVAL_HISTORY ah
+                      on ah.d_no = ad.D_NO
+        where ah.ap_id = #{value} and ah.ap_result = '승인' and ad.D_STATUS = '진행중'
+        order by ad.d_no desc
     </select>
+
+    <select id="approvalDenyList" parameterType="String" resultType="map">
+        select distinct ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
+                        ad.e_no as "e_no", ad.d_category as "d_category",
+                        to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
+        from approval_doc ad
+                 join employee e
+                      on ad.e_no = e.e_no
+                 join APPROVAL_HISTORY ah
+                      on ah.d_no = ad.D_NO
+        where #{value} in(e.e_no, ah.ap_id) and ad.D_STATUS = '반려'
+        order by ad.d_no desc
+    </select>
+
+    <select id="approvalCompleteList" parameterType="String" resultType="map">
+        select distinct ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
+                        ad.e_no as "e_no", ad.d_category as "d_category",
+                        to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
+        from approval_doc ad
+                 join employee e
+                      on ad.e_no = e.e_no
+                 join APPROVAL_HISTORY ah
+                      on ah.d_no = ad.D_NO
+        where #{value} in(e.e_no, ah.ap_id) and ad.D_STATUS = '종결'
+        order by ad.d_no desc
+    </select>
+
+    <select id="approvalTempList" parameterType="String" resultType="map">
+        select distinct ad.d_no as "d_no", ad.d_title as "d_title", DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS "d_content", ad.d_status as "d_status",
+                        ad.e_no as "e_no", ad.d_category as "d_category",
+                        to_char(ad.reg_date, 'YYYY-MM-DD') as "reg_date", e.e_name as "e_name", e.dept_name "dept_name"
+        from approval_doc ad
+                 join employee e
+                      on ad.e_no = e.e_no
+        where ad.E_NO = #{value} and ad.D_STATUS = '임시저장'
+        order by ad.d_no desc
+    </select>
+
 
     <select id="getDeptData" resultMap="deptDataMap">
         select dept.dept_name as "dept_name", e.e_no as "e_no", e.e_name "e_name", e.e_rank "e_rank"
@@ -34,6 +99,140 @@
                       on e.dept_name = dept.dept_name
         order by e.dept_name
     </select>
+
+    <select id="getApprovalDocCount" parameterType="String" resultType="map">
+        select
+            (select count(distinct ad.d_no)
+             from APPROVAL_DOC ad join APPROVAL_HISTORY ah on ad.d_no = ah.d_no
+             where ah.ap_id = #{value} and ap_result = '대기중' and ad.d_status in('진행중', '상신')) as "wait_cnt"
+             ,(select count(distinct ad.d_no)
+               from APPROVAL_DOC ad join APPROVAL_HISTORY ah on ad.d_no = ah.d_no
+               where ah.ap_id = #{value} and ah.ap_result = '승인' and ad.D_STATUS = '진행중') as "progress_cnt"
+             ,(select count(distinct ad.d_no)
+               from APPROVAL_DOC ad join APPROVAL_HISTORY ah on ad.d_no = ah.d_no
+               where #{value} in(ad.E_NO, ah.AP_ID) and ad.D_STATUS = '반려')as "deny_cnt"
+        from dual
+    </select>
+
+    <insert id="approvalInsert" useGeneratedKeys="true" parameterType="map" keyColumn="d_no" keyProperty ="d_no">
+        insert into APPROVAL_DOC(d_no, d_title, d_content, d_status, e_no, d_category,
+                                 reg_date, mod_date, reg_id, mod_id)
+        values(SEQ_APPROVAL_NO.nextval, #{d_title}, #{d_content},#{d_status}
+              ,#{e_no},#{d_category}, sysdate, sysdate,#{e_no},#{e_no})
+    </insert>
+
+    <insert id="approvalFileUpload" parameterType="java.util.List">
+        INSERT INTO approval_file(ap_file_no, d_no, ap_filename, ap_fileorigin, ap_filepath, reg_date, mod_date, reg_id, mod_id)
+        SELECT seq_approval_file_no.nextval, A.* from
+        (
+        <foreach collection="list" item="item" index="index" separator="UNION ALL">
+            SELECT
+            #{item.d_no} as d_no,
+            #{item.ap_filename} as ap_filename,
+            #{item.ap_fileorigin} as ap_fileorigin,
+            #{item.ap_filepath} as ap_filepath,
+            sysdate as reg_date,
+            sysdate as mod_date,
+            #{item.e_no} as reg_id,
+            #{item.e_no} as mod_id
+            from dual
+        </foreach>
+        ) A
+    </insert>
+
+    <insert id="approvalHistoryInsert" parameterType="java.util.List">
+        insert into APPROVAL_HISTORY(ap_no, ap_lev, ap_result, ap_id, ap_cdate,
+                                     ap_category, d_no, ap_comment, reg_date, mod_date, reg_id, mod_id)
+        select SEQ_APPROVAL_HISTORY_NO.nextval, A.* from
+         (
+         <foreach collection="list" item="item" index="index" separator="UNION ALL">
+             select
+                 #{item.ap_lev, jdbcType=NUMERIC} as ap_lev,
+                 '대기중' as ap_result,
+                 #{item.ap_id} as ap_id,
+                 null as ap_cdate,
+                 #{item.ap_category} as ap_category,
+                 #{item.d_no, jdbcType=NUMERIC} as d_no,
+                 null as ap_comment,
+                 sysdate as reg_date,
+                 sysdate as mod_date,
+                 #{item.ap_id} as reg_id,
+                 #{item.ap_id} as mod_id
+             from dual
+         </foreach>
+         ) A
+    </insert>
+
+    <resultMap id="approvalDocDataMap" type="map">
+        <id column="d_NO" property="d_no" jdbcType="NUMERIC"/>
+        <result column="D_CONTENT" property="d_content" jdbcType="VARCHAR"/>
+        <result column="D_TITLE" property="d_title" jdbcType="VARCHAR"/>
+        <result column="D_STATUS" property="d_status" jdbcType="VARCHAR"/>
+        <result column="E_NO" property="e_no" jdbcType="VARCHAR"/>
+        <result column="E_NAME" property="e_name" jdbcType="VARCHAR"/>
+        <result column="E_RANK" property="e_rank" jdbcType="VARCHAR"/>
+        <result column="DEPT_NAME" property="dept_name" jdbcType="VARCHAR"/>
+        <result column="D_CATEGORY" property="d_category" jdbcType="VARCHAR"/>
+        <result column="REG_DATE" property="reg_date" jdbcType="DATE"/>
+        <collection property="file" javaType="list" ofType="map">
+            <id column="AP_FILE_NO" property="ap_file_no" jdbcType="VARCHAR"/>
+            <result column="AP_FILENAME" property="ap_filename" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="line" javaType="list" ofType="map">
+            <id column="AP_NO" property="ap_no" jdbcType="NUMERIC"/>
+            <result column="AP_LEV" property="ap_lev" jdbcType="NUMERIC"/>
+            <result column="AP_RESULT" property="ap_result" jdbcType="VARCHAR"/>
+            <result column="AP_ID" property="ap_id" jdbcType="VARCHAR"/>
+            <result column="AP_NAME" property="ap_name" jdbcType="VARCHAR"/>
+            <result column="AP_RANK" property="ap_rank" jdbcType="VARCHAR"/>
+            <result column="AP_CDATE" property="ap_cdate" jdbcType="VARCHAR"/>
+            <result column="AP_CATEGORY" property="ap_category" jdbcType="VARCHAR"/>
+            <result column="AP_COMMENT" property="ap_comment" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <select id="getApprovalDetail" parameterType="int" resultMap="approvalDocDataMap">
+        select ad.d_no, DBMS_LOB.SUBSTR(ad.d_content, 4000, 1) AS d_content, ad.d_title, ad.d_status, ad.e_no, e.e_name, e.e_rank, ad.D_CATEGORY, to_char(ad.reg_date,'YYYY-MM-DD hh:mm:ss') as reg_date
+                ,e.dept_name, af.ap_file_no, af.ap_filename,
+               ah.ap_no, ah.ap_lev, ah.ap_result, ah.ap_id,(select e_name from EMPLOYEE  where e_no = ah.ap_id) as ap_name
+               ,(select e_rank from EMPLOYEE  where e_no = ah.ap_id) as ap_rank, ah.ap_cdate, ah.ap_category, ah.ap_comment
+        from APPROVAL_DOC ad
+                 left join APPROVAL_FILE af on ad.d_no = af.d_no
+                 left join APPROVAL_HISTORY ah on ad.d_no = ah.d_no
+                 join EMPLOYEE e on ad.e_no = e.e_no
+        where ad.d_no = #{value}
+        order by ap_category , ap_lev
+    </select>
+
+    <select id="getFinalApprovalLevel" resultType="int" parameterType="int">
+        SELECT MAX(AP_LEV)
+        FROM APPROVAL_HISTORY
+        WHERE D_NO = #{d_no} and AP_CATEGORY = '결재'
+    </select>
+
+    <update id="passOrDeny" parameterType="map">
+        update APPROVAL_HISTORY
+        set
+            ap_result=#{ap_result},
+            ap_cdate=sysdate,
+            ap_comment=#{ap_comment},
+            reg_date=sysdate,
+            mod_id=#{ap_id}
+        where ap_no = #{ap_no}
+    </update>
+    
+    <update id="statusUpdate" parameterType="map">
+        update approval_doc
+        set
+            d_status=#{d_status}
+        where d_no =#{d_no}
+    </update>
+
+    <delete id="approvalDelete" parameterType="int">
+        delete from APPROVAL_DOC where d_no = #{value}
+    </delete>
+
+
 
 
 </mapper>

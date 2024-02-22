@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sg.silvergarden.dao.mapperInterface.MessageMapper">
+
+    <insert id="messageSend" parameterType="map" useGeneratedKeys="true" keyColumn="me_no" keyProperty ="me_no">
+        insert into message(me_no, me_writer, me_title, me_content, use_yn, reg_date, mod_date, reg_id, mod_id)
+        values(SEQ_MESSAGE_NO.nextval, #{send_id},
+               #{me_title}, #{me_content}, 'Y', sysdate, sysdate,#{send_id},#{send_id})
+    </insert>
+
+    <insert id="messageFileUpload" parameterType="list">
+        INSERT INTO message_file(me_file_no, me_no, me_filename, me_fileorigin, me_filepath, reg_date, mod_date, reg_id, mod_id)
+        SELECT seq_message_no.nextval, A.* from
+        (
+        <foreach collection="list" item="item" index="index" separator="UNION ALL">
+            SELECT
+            #{item.me_no} as me_no,
+            #{item.me_filename} as me_filename,
+            #{item.me_fileorigin} as me_fileorigin,
+            #{item.me_filepath} as me_filepath,
+            sysdate as reg_date,
+            sysdate as mod_date,
+            #{item.send_id} as reg_id,
+            #{item.send_id} as mod_id
+            from dual
+        </foreach>
+        ) A
+    </insert>
+
+    <insert id="messageRecipientInsert" parameterType="list">
+        INSERT ALL
+        <foreach collection="list" item="item" index="index" separator=" ">
+            INTO message_recipient(r_id, me_no, read_status, read_time, me_status)
+            VALUES(
+                #{item.r_id},
+                #{item.me_no},
+                'N',
+                null,
+                'Y')
+        </foreach>
+        SELECT * FROM DUAL
+    </insert>
+
+
+    <resultMap id="messageListMap" type="map">
+        <id column="ME_NO" property="me_no" jdbcType="NUMERIC"/>
+        <result column="ME_WRITER" property="me_writer" jdbcType="VARCHAR"/>
+        <result column="WRITER_NAME" property="writer_name" jdbcType="VARCHAR"/>
+        <result column="READ_STATUS" property="read_status" jdbcType="VARCHAR"/>
+        <result column="ME_TITLE" property="me_title" jdbcType="VARCHAR"/>
+        <result column="ME_CONTENT" property="me_content" jdbcType="VARCHAR"/>
+        <result column="REG_DATE" property="reg_date" jdbcType="VARCHAR"/>
+        <collection property="file" javaType="list" ofType="map">
+            <id column="ME_FILE_NO" property="me_file_no" jdbcType="NUMERIC"/>
+            <result column="ME_FILENAME" property="me_filename" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <select id="messageReceiveList" parameterType="String" resultMap="messageListMap">
+        select m.me_no, m.me_writer, (select e_name from EMPLOYEE where m.ME_WRITER = E_NO) as writer_name, mr.read_status,
+               m.me_title, m.me_content, to_char(m.reg_date, 'YYYY-MM-DD hh:mm:ss') as reg_date, mf.ME_FILE_NO, mf.ME_FILENAME
+        from MESSAGE m
+                 join MESSAGE_RECIPIENT mr
+                      on m.me_no = mr.me_no
+                 left join MESSAGE_FILE mf
+                           on mf.me_no = m.me_no
+        where mr.r_id = #{e_no} and mr.me_status = 'Y'
+        order by m.me_no desc
+    </select>
+
+    <select id="messageDeletedList" parameterType="String" resultMap="messageListMap">
+        select m.me_no, m.me_writer, (select e_name from EMPLOYEE where m.ME_WRITER = E_NO) as writer_name, mr.read_status,
+               m.me_title, m.me_content, to_char(m.reg_date, 'YYYY-MM-DD hh:mm:ss') as reg_date, mf.ME_FILE_NO, mf.ME_FILENAME
+        from MESSAGE m
+                 join MESSAGE_RECIPIENT mr
+                      on m.me_no = mr.me_no
+                 left join MESSAGE_FILE mf
+                           on mf.me_no = m.me_no
+        where mr.r_id = #{e_no} and mr.me_status = 'N'
+        order by m.me_no desc
+    </select>
+
+    <select id="messageStoredList" parameterType="String" resultMap="messageListMap">
+        select m.me_no, m.me_writer, (select e_name from EMPLOYEE where m.ME_WRITER = E_NO) as writer_name, mr.read_status,
+               m.me_title, m.me_content, to_char(m.reg_date, 'YYYY-MM-DD hh:mm:ss') as reg_date, mf.ME_FILE_NO, mf.ME_FILENAME
+        from MESSAGE m
+                 join MESSAGE_RECIPIENT mr
+                      on m.me_no = mr.me_no
+                 left join MESSAGE_FILE mf
+                           on mf.me_no = m.me_no
+        where mr.r_id = #{e_no} and mr.me_status = 'S'
+        order by m.me_no desc
+    </select>
+
+    <update id="messageRead" parameterType="map">
+        update MESSAGE_RECIPIENT
+        set read_status = 'Y'
+        where r_id = #{r_id} and me_no = #{me_no}
+    </update>
+
+    <update id="messageStatusChange" parameterType="map">
+        update MESSAGE_RECIPIENT
+        set me_status = #{me_status}
+        where r_id = #{r_id} and me_no = #{me_no}
+    </update>
+
+    <resultMap id="messageSendMap" type="map">
+        <id column="ME_NO" property="me_no" jdbcType="NUMERIC"/>
+        <result column="ME_WRITER" property="me_writer" jdbcType="VARCHAR"/>
+        <result column="ME_TITLE" property="me_title" jdbcType="VARCHAR"/>
+        <result column="ME_CONTENT" property="me_content" jdbcType="VARCHAR"/>
+        <result column="REG_DATE" property="reg_date" jdbcType="VARCHAR"/>
+        <collection property="file" javaType="list" ofType="map">
+            <id column="ME_FILE_NO" property="me_file_no" jdbcType="NUMERIC"/>
+            <result column="ME_FILENAME" property="me_filename" jdbcType="VARCHAR"/>
+        </collection>
+        <collection property="recipient" javaType="list" ofType="map">
+            <id column="R_NAME" property="r_name" jdbcType="VARCHAR"/>
+            <result column="READ_STATUS" property="read_status" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <select id="messageSendList" parameterType="String" resultMap="messageSendMap">
+        select m.me_no, m.me_writer, m.me_title, m.me_content, to_char(m.reg_date, 'YYYY-MM-DD hh:mm:ss') as reg_date,
+               mf.ME_FILE_NO, mf.ME_FILENAME, (select e_name from EMPLOYEE where mr.r_id = e_no) as r_name, mr.READ_STATUS
+        from MESSAGE m
+                 left join MESSAGE_RECIPIENT mr on mr.me_no = m.me_no
+                 left join MESSAGE_FILE mf on mf.me_no = m.me_no
+        where m.me_writer = #{e_no} and m.use_yn = 'Y'
+    </select>
+</mapper>

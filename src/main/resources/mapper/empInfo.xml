@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mybatis.mapper.EmpInfoMapper">
-    <select id="empList" parameterType="map" resultType="map">
+    <!--<select id="empList" parameterType="map" resultType="map">
         SELECT
             emp.E_NO,
             emp.E_NAME,
@@ -50,18 +50,18 @@
                 LEFT JOIN (
                 SELECT
                     E_NO,
-                    MAX(CASE WHEN EDU_NAME LIKE '%고등학교%' THEN EDU_PERIOD END) AS HIGH_SCHOOL_PERIOD,
-                    MAX(CASE WHEN EDU_NAME LIKE '%고등학교%' THEN EDU_NAME END) AS HIGH_SCHOOL_NAME,
-                    MAX(CASE WHEN EDU_NAME LIKE '%고등학교%' THEN EDU_MAJOR END) AS HIGH_SCHOOL_MAJOR,
-                    MAX(CASE WHEN EDU_NAME LIKE '%고등학교%' THEN EDU_STATUS END) AS HIGH_SCHOOL_STATUS,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학교%' THEN EDU_PERIOD END) AS UNIVERSITY_PERIOD,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학교%' THEN EDU_NAME END) AS UNIVERSITY_NAME,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학교%' THEN EDU_MAJOR END) AS UNIVERSITY_MAJOR,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학교%' THEN EDU_STATUS END) AS UNIVERSITY_STATUS,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학원%' THEN EDU_PERIOD END) AS GRADUATE_SCHOOL_PERIOD,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학원%' THEN EDU_NAME END) AS GRADUATE_SCHOOL_NAME,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학원%' THEN EDU_MAJOR END) AS GRADUATE_SCHOOL_MAJOR,
-                    MAX(CASE WHEN EDU_NAME LIKE '%대학원%' THEN EDU_STATUS END) AS GRADUATE_SCHOOL_STATUS
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_PERIOD END) AS HIGH_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_NAME END) AS HIGH_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_MAJOR END) AS HIGH_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_STATUS END) AS HIGH_SCHOOL_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_PERIOD END) AS UNIVERSITY_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_NAME END) AS UNIVERSITY_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_MAJOR END) AS UNIVERSITY_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_STATUS END) AS UNIVERSITY_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_PERIOD END) AS GRADUATE_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_NAME END) AS GRADUATE_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_MAJOR END) AS GRADUATE_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_STATUS END) AS GRADUATE_SCHOOL_STATUS
                 FROM
                     EDUCATION
                 GROUP BY
@@ -98,7 +98,197 @@
             emp.E_NO, emp.E_NAME, emp.E_ADDRESS, emp.E_AUTH, emp.E_STATUS, emp.E_EMAIL, emp.E_GENDER, emp.E_HIREDATE, emp.E_ENDDATE, emp.E_PASSWORD, emp.E_PHONE, emp.E_RANK, emp.E_BIRTH, emp.DEPT_NAME, emp.E_OCCUP, emp.E_PROFILE
         ORDER BY
             emp.E_NO
+    </select>-->
+
+<!--    <select id="empList" parameterType="map" resultType="map">
+        SELECT
+            emp.E_NO,
+            emp.E_NAME,
+            emp.E_ADDRESS,
+            emp.E_AUTH,
+            emp.E_STATUS,
+            emp.E_EMAIL,
+            emp.E_GENDER,
+            emp.E_HIREDATE,
+            emp.E_ENDDATE,
+            emp.E_PASSWORD,
+            emp.E_PHONE,
+            emp.E_RANK,
+            emp.E_BIRTH,
+            emp.DEPT_NAME,
+            emp.E_OCCUP,
+            emp.E_PROFILE,
+            TO_CHAR(emp.REG_DATE, 'YYYY-MM-DD') as REG_DATE,
+            edu.HIGH_SCHOOL_PERIOD,
+            edu.HIGH_SCHOOL_NAME,
+            edu.HIGH_SCHOOL_MAJOR,
+            edu.HIGH_SCHOOL_STATUS,
+            edu.UNIVERSITY_PERIOD,
+            edu.UNIVERSITY_NAME,
+            edu.UNIVERSITY_MAJOR,
+            edu.UNIVERSITY_STATUS,
+            edu.GRADUATE_SCHOOL_PERIOD,
+            edu.GRADUATE_SCHOOL_NAME,
+            edu.GRADUATE_SCHOOL_MAJOR,
+            edu.GRADUATE_SCHOOL_STATUS,
+            exp.EXP_NO,
+            exp.EXP_NAME,
+            exp.EXP_DEPT,
+            exp.EXP_RANK,
+            exp.EXP_DUTY,
+            exp.EXP_PERIOD,
+            cer.CERTI_NO,
+            cer.CERTI_CATE,
+            cer.CERTI_CODE,
+            cer.CERTI_ISSUER,
+            cer.CERTI_ACQUIRE
+        FROM
+            EMPLOYEE emp
+                LEFT JOIN (
+                SELECT
+                    E_NO,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_PERIOD END) AS HIGH_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_NAME END) AS HIGH_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_MAJOR END) AS HIGH_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_STATUS END) AS HIGH_SCHOOL_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_PERIOD END) AS UNIVERSITY_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_NAME END) AS UNIVERSITY_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_MAJOR END) AS UNIVERSITY_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_STATUS END) AS UNIVERSITY_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_PERIOD END) AS GRADUATE_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_NAME END) AS GRADUATE_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_MAJOR END) AS GRADUATE_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_STATUS END) AS GRADUATE_SCHOOL_STATUS
+                FROM
+                    EDUCATION
+                GROUP BY
+                    E_NO
+            ) edu ON emp.E_NO = edu.E_NO
+                LEFT JOIN (
+                SELECT
+                    E_NO,
+                    EXP_NO,
+                    EXP_NAME,
+                    EXP_DEPT,
+                    EXP_RANK,
+                    EXP_DUTY,
+                    EXP_PERIOD
+                FROM
+                    EXPERIENCE
+            ) exp ON emp.E_NO = exp.E_NO
+                LEFT JOIN (
+                SELECT
+                    E_NO,
+                    CERTI_NO,
+                    CERTI_CATE,
+                    CERTI_CODE,
+                    CERTI_ISSUER,
+                    CERTI_ACQUIRE
+                FROM
+                    CERTIFICATION
+            ) cer ON emp.E_NO = cer.E_NO
+        ORDER BY
+            emp.E_NO
+    </select>-->
+
+    <select id="empList" parameterType="map" resultType="map">
+        SELECT
+            emp.E_NO,
+            emp.E_NAME,
+            emp.E_ADDRESS,
+            emp.E_AUTH,
+            emp.E_STATUS,
+            emp.E_EMAIL,
+            emp.E_GENDER,
+            emp.E_HIREDATE,
+            emp.E_ENDDATE,
+            emp.E_PASSWORD,
+            emp.E_PHONE,
+            emp.E_RANK,
+            emp.E_BIRTH,
+            emp.DEPT_NAME,
+            emp.E_OCCUP,
+            emp.E_PROFILE,
+            MAX(edu.HIGH_SCHOOL_PERIOD) AS HIGH_SCHOOL_PERIOD,
+            MAX(edu.HIGH_SCHOOL_NAME) AS HIGH_SCHOOL_NAME,
+            MAX(edu.HIGH_SCHOOL_MAJOR) AS HIGH_SCHOOL_MAJOR,
+            MAX(edu.HIGH_SCHOOL_STATUS) AS HIGH_SCHOOL_STATUS,
+            MAX(edu.UNIVERSITY_PERIOD) AS UNIVERSITY_PERIOD,
+            MAX(edu.UNIVERSITY_NAME) AS UNIVERSITY_NAME,
+            MAX(edu.UNIVERSITY_MAJOR) AS UNIVERSITY_MAJOR,
+            MAX(edu.UNIVERSITY_STATUS) AS UNIVERSITY_STATUS,
+            MAX(edu.GRADUATE_SCHOOL_PERIOD) AS GRADUATE_SCHOOL_PERIOD,
+            MAX(edu.GRADUATE_SCHOOL_NAME) AS GRADUATE_SCHOOL_NAME,
+            MAX(edu.GRADUATE_SCHOOL_MAJOR) AS GRADUATE_SCHOOL_MAJOR,
+            MAX(edu.GRADUATE_SCHOOL_STATUS) AS GRADUATE_SCHOOL_STATUS
+        FROM
+            EMPLOYEE emp
+                LEFT JOIN (
+                SELECT
+                    E_NO,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_PERIOD END) AS HIGH_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_NAME END) AS HIGH_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_MAJOR END) AS HIGH_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '1' THEN EDU_STATUS END) AS HIGH_SCHOOL_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_PERIOD END) AS UNIVERSITY_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_NAME END) AS UNIVERSITY_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_MAJOR END) AS UNIVERSITY_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '2' THEN EDU_STATUS END) AS UNIVERSITY_STATUS,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_PERIOD END) AS GRADUATE_SCHOOL_PERIOD,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_NAME END) AS GRADUATE_SCHOOL_NAME,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_MAJOR END) AS GRADUATE_SCHOOL_MAJOR,
+                    MAX(CASE WHEN EDU_ORDER = '3' THEN EDU_STATUS END) AS GRADUATE_SCHOOL_STATUS
+                FROM
+                    EDUCATION
+                GROUP BY
+                    E_NO
+            ) edu ON emp.E_NO = edu.E_NO
+        GROUP BY
+            emp.E_NO,
+            emp.E_NAME,
+            emp.E_ADDRESS,
+            emp.E_AUTH,
+            emp.E_STATUS,
+            emp.E_EMAIL,
+            emp.E_GENDER,
+            emp.E_HIREDATE,
+            emp.E_ENDDATE,
+            emp.E_PASSWORD,
+            emp.E_PHONE,
+            emp.E_RANK,
+            emp.E_BIRTH,
+            emp.DEPT_NAME,
+            emp.E_OCCUP,
+            emp.E_PROFILE
+        ORDER BY emp.E_NO
     </select>
+
+    <select id="experienceList" parameterType="map" resultType="map">
+        SELECT
+            emp.E_NO,
+            exp.EXP_NO,
+            exp.EXP_NAME,
+            exp.EXP_DEPT,
+            exp.EXP_RANK,
+            exp.EXP_DUTY,
+            exp.EXP_PERIOD
+        FROM EMPLOYEE emp
+                 RIGHT JOIN EXPERIENCE exp ON emp.E_NO = exp.E_NO
+        ORDER BY exp.EXP_PERIOD
+    </select>
+
+    <select id="certificationList" parameterType="map" resultType="map">
+        SELECT
+            emp.E_NO,
+            cer.CERTI_NO,
+            cer.CERTI_CATE,
+            cer.CERTI_CODE,
+            cer.CERTI_ISSUER,
+            cer.CERTI_ACQUIRE
+        FROM EMPLOYEE emp
+                 RIGHT JOIN CERTIFICATION cer ON emp.E_NO = cer.E_NO
+    </select>
+
     <update id="empInfoUpdate" parameterType="map">
         update EMPLOYEE
         <set>
@@ -120,91 +310,74 @@
         </set>
         where E_NO = #{E_NO}
     </update>
-<!--    <update id="empEduUpdate" parameterType="map">
-        UPDATE EDUCATION
-        SET
-            EDU_PERIOD = CASE
-                             WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                             WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                             WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                             ELSE NULL
-                END,
-            EDU_NAME = CASE
-                           WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                           WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                           WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                           ELSE NULL
-                END,
-            EDU_MAJOR = CASE
-                            WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                            WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                            WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                            ELSE NULL
-                END,
-            EDU_STATUS = CASE
-                             WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                             WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                             WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                             ELSE NULL
-                END
-        WHERE E_NO = #{E_NO}
-    </update>-->
 
     <update id="empEduUpdate" parameterType="map">
         UPDATE EDUCATION
-        SET
-            HIGH_SCHOOL_PERIOD = CASE
-                                   WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                                   ELSE NULL
-                END,
-            UNIVERSITY_PERIOD = CASE
-                                  WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                                  ELSE NULL
-                END,
-            GRADUATE_SCHOOL_PERIOD = CASE
-                                   WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_PERIOD}, NULLIF(EDU_PERIOD, ''))
-                                   ELSE NULL
-                END,
-            HIGH_SCHOOL_NAME = CASE
-                               WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                                ELSE NULL
-                END,
-            UNIVERSITY_NAME = CASE
-                                   WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                            ELSE NULL
-                END,
-            GRADUATE_SCHOOL_NAME = CASE
-                                  WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_NAME}, NULLIF(EDU_NAME, ''))
-                            ELSE NULL
-                END,
-            HIGH_SCHOOL_MAJOR = CASE
-                                   WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                                   ELSE NULL
-                END,
-            UNIVERSITY_MAJOR = CASE
-                                  WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                                  ELSE NULL
-                END,
-            GRADUATE_SCHOOL_MAJOR = CASE
-                                       WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_MAJOR}, NULLIF(EDU_MAJOR, ''))
-                                       ELSE NULL
-                END,
-            HIGH_SCHOOL_STATUS = CASE
-                                    WHEN EDU_NAME LIKE '%고등학교%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                                    ELSE NULL
-                END,
-            UNIVERSITY_STATUS = CASE
-                                   WHEN EDU_NAME LIKE '%대학교%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                                   ELSE NULL
-                END,
-            GRADUATE_SCHOOL_STATUS = CASE
-                                        WHEN EDU_NAME LIKE '%대학원%' THEN COALESCE(#{EDU_STATUS}, NULLIF(EDU_STATUS, ''))
-                                        ELSE NULL
-                END
-        WHERE E_NO = #{E_NO}
+        <set>
+            <if test="VALUE != null">
+                <choose>
+                    <!-- EDU_ORDER가 1인 경우 -->
+                    <when test="EDU_ORDER == 1">
+                        <if test="key != null and key.startsWith('HIGH_SCHOOL_NAME')">
+                            EDU_NAME = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('HIGH_SCHOOL_PERIOD')">
+                            EDU_PERIOD = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('HIGH_SCHOOL_MAJOR')">
+                            EDU_MAJOR = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('HIGH_SCHOOL_STATUS')">
+                            EDU_STATUS = #{VALUE},
+                        </if>
+                    </when>
+                    <!-- EDU_ORDER가 2인 경우 -->
+                    <when test="EDU_ORDER == 2">
+                        <if test="key != null and key.startsWith('UNIVERSITY_NAME')">
+                            EDU_NAME = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('UNIVERSITY_PERIOD')">
+                            EDU_PERIOD = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('UNIVERSITY_MAJOR')">
+                            EDU_MAJOR = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('UNIVERSITY_STATUS')">
+                            EDU_STATUS = #{VALUE},
+                        </if>
+                    </when>
+                    <!-- EDU_ORDER가 3인 경우 -->
+                    <when test="EDU_ORDER == 3">
+                        <if test="key != null and key.startsWith('GRADUATE_SCHOOL_NAME')">
+                            EDU_NAME = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('GRADUATE_SCHOOL_PERIOD')">
+                            EDU_PERIOD = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('GRADUATE_SCHOOL_MAJOR')">
+                            EDU_MAJOR = #{VALUE},
+                        </if>
+                        <if test="key != null and key.startsWith('GRADUATE_SCHOOL_STATUS')">
+                            EDU_STATUS = #{VALUE},
+                        </if>
+                    </when>
+                </choose>
+            </if>
+        </set>
+        WHERE E_NO = #{E_NO} AND EDU_ORDER = #{EDU_ORDER}
     </update>
 
-    <delete id="empDelete" parameterType="int">
-        delete from employee where e_no = #{value}
+    <insert id="experienceInsert" parameterType="map">
+        INSERT INTO experience (EXP_NO, EXP_NAME, EXP_DEPT, EXP_RANK, EXP_DUTY, EXP_PERIOD, E_NO, REG_DATE, REG_ID)
+        VALUES (seq_experience_no.NEXTVAL, #{EXP_NAME}, #{EXP_DEPT}, #{EXP_RANK}, #{EXP_DUTY}, #{EXP_PERIOD}, #{E_NO}, sysdate, #{REG_ID})
+    </insert>
+    <delete id="experienceDelete" parameterType="int">
+        DELETE FROM experience
+        WHERE EXP_NO = #{exp_no}
     </delete>
+
+    <insert id="certiInsert" parameterType="map">
+        INSERT INTO certification (certi_no, certi_cate, certi_code, certi_issuer, certi_acquire, e_no, reg_date, reg_id)
+        VALUES (seq_certification_no.NEXTVAL,#{certi_cate}, #{certi_code}, #{certi_issuer}, #{certi_acquire}, #{e_no}, sysdate, #{reg_id})
+    </insert>
 </mapper>

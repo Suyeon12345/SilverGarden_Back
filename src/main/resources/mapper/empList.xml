@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.mapper.EmpListMapper">
+    <select id="allEmpList" parameterType="map" resultType="map">
+        SELECT
+        E_NO, E_NAME, E_STATUS,
+        E_EMAIL, E_PHONE, E_RANK, DEPT_NAME,
+        E_OCCUP,c3.CD_VALUE AS EXT_VALUE
+        FROM EMPLOYEE
+        INNER JOIN COMMON_CD ON EMPLOYEE.DEPT_NAME = common_cd.CD_VALUE
+        LEFT OUTER JOIN (
+        SELECT c2.CD, c2.CD_VALUE, c2.HIGH_CD
+        FROM COMMON_CD c2
+        WHERE GRP_CD = 'ext01' AND USE_YN = 'Y'
+        ) c3 ON COMMON_CD.CD = c3.HIGH_CD
+    <where>
+        <if test="gubun != null and menuTitle != null and !menuTitle.equals('전체')">
+            AND DEPT_NAME LIKE '%' || #{menuTitle} || '%'
+        </if>
+        <if test="find != null and keyword != null">
+            AND E_NAME LIKE '%' || #{keyword} || '%'
+        </if>
+    </where>
+</select>
+</mapper>
