@@ -33,12 +33,12 @@
             --종류별로 컬러를 넣고 싶은 것으로 아래 case문 작성(색상 취향에 따라 선택)
                 CASE
                     --연보라/연핑크/연민트/기본 : 연초록 '신체', '교양', '문화', '교육', '여가'
-                    WHEN PS_CATEGORY = '교육' THEN '#0dcaf0'
-                    WHEN PS_CATEGORY = '문화' THEN '#20c997'
-                    WHEN PS_CATEGORY = '신체' THEN '#ffc107'
-                    WHEN PS_CATEGORY = '교양' THEN '#fd7e14'
-                    WHEN PS_CATEGORY = '여가' THEN '#4a6bff96'
-                    ELSE '#d63384'
+                    WHEN PS_CATEGORY = '교육' THEN 'lightgreen'
+                    WHEN PS_CATEGORY = '문화' THEN 'yellow'
+                    WHEN PS_CATEGORY = '신체' THEN 'lightblue'
+                    WHEN PS_CATEGORY = '교양' THEN 'lightgrey'
+                    WHEN PS_CATEGORY = '여가' THEN 'lightorange'
+                    ELSE '#6495ED'
                     --#FFFFCC / #6495ED / #F0F8FF
                 END AS COLOR
 /*            CASE
