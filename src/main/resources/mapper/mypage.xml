@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mybatis.mapper.MypageMapper">
+    <select id="callMypage" resultType="java.util.Map">
+        SELECT TO_CHAR(AT_DATE,'YYYY-MM-DD') AS AT_DATE,
+               E_NO,
+               TO_CHAR(AT_START,'HH24:MI') AS AT_START,
+               TO_CHAR(AT_END,'HH24:MI') AS AT_END,
+               AT_STATUS
+        FROM ATTENDANCE
+    </select>
+</mapper>
+

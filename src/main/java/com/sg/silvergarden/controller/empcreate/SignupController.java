@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Log4j2
 @RestController
-@RequestMapping("/empcreate")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class SignupController {
 

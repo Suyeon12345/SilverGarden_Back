@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="loginMapper">
+    <resultMap id="eVO" type="com.sg.silvergarden.vo.empcreate.EmpVO"></resultMap>
+    <select id="findById" parameterType="String" resultMap="eVO">
+        select e_no, e_birth, e_name, e_phone, dept_name, e_email, e_password, e_auth, e_profile, e_rank from employee where e_no = #{e_no}
+    </select>
+    <select id="findByRole" resultMap="eVO">
+        SELECT e_no, e_birth, e_name, e_phone, dept_name, e_email, e_password, e_auth FROM EMPLOYEE WHERE e_auth = #{e_auth}
+    </select>
+</mapper>

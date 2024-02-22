@@ -82,7 +82,7 @@ public class NoticeController {
         log.info(pmap.toString());
         int result = -1;
         result = noticeService.noticeInsert(pmap);
-        return result == 1?"ok":"error";
+        return result == 0?"error":"ok";
     }
 
     @GetMapping("noticeDelete")
@@ -90,7 +90,7 @@ public class NoticeController {
         log.info(pmap.toString());
         int result = -1;
         result = noticeService.noticeDelete(pmap);
-        return "ok";
+        return result == 0?"error":"ok";
     }
 
     @GetMapping("noticeUpdate")
@@ -98,7 +98,7 @@ public class NoticeController {
         log.info(pmap.toString());
         int result = -1;
         result = noticeService.noticeUpdate(pmap);
-        return "ok";
+        return result == 0?"error":"ok";
     }
 
     private String getCurrentTimeMillisFormat() {

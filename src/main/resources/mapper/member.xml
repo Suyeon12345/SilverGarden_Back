@@ -4,24 +4,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mybatis.mapper.MemberMapper">
     <select id="memberList" resultType="java.util.Map">
-        SELECT CLIENT_ID, CLIENT_NAME,SUBSTR(CLIENT_BIRTH, 1, INSTR(CLIENT_BIRTH, 'T') - 1) AS CLIENT_BIRTH
+        SELECT CLIENT_ID, CLIENT_NAME,TO_CHAR(CLIENT_BIRTH,'YYYY-MM-DD')AS CLIENT_BIRTH
         , CLIENT_GENDER, CLIENT_AGE, CLIENT_TEL
         , CLIENT_ADDRESS, CLIENT_MANAGER, CLIENT_PHOTO
         , CLIENT_PAGEID, CLIENT_PW
-        , REG_ID, MOD_ID, REG_DATE, MOD_DATE
+        , REG_ID, MOD_ID, TO_CHAR(REG_DATE,'YYYY-MM-DD')AS REG_DATE, MOD_DATE
         FROM CLIENT
-        <where>
-            <if test="gubun!=null">
-                <choose>
-                    <when test='gubun.equals("client_name")'>
-                        AND CLIENT_NAME LIKE '%'||#{keyword}||'%'
-                    </when>
-                    <when test='gubun.equals("client_manager")'>
-                        AND CLIENT_MANAGER LIKE '%'||#{keyword}||'%'
-                    </when>
-                </choose>
-            </if>
-        </where>
     </select>
     <delete id="memberDelete" parameterType="map">
         delete from CLIENT where CLIENT_ID =  #{CLIENT_ID}
@@ -30,9 +18,10 @@
         update CLIENT
         set
             CLIENT_NAME=#{CLIENT_NAME},
-            CLIENT_BIRTH=TO_CHAR(#{CLIENT_BIRTH}),
+            CLIENT_BIRTH=#{CLIENT_BIRTH},
             CLIENT_GENDER=#{CLIENT_GENDER},
             CLIENT_TEL=#{CLIENT_TEL},
+            CLIENT_AGE=#{CLIENT_AGE},
             CLIENT_ADDRESS=#{CLIENT_ADDRESS},
             CLIENT_MANAGER=#{CLIENT_MANAGER},
             MOD_DATE=sysdate,
@@ -41,14 +30,14 @@
     </update>
     <insert id="memberInsert" useGeneratedKeys="true" parameterType="map" keyColumn="CLIENT_ID" keyProperty ="CLIENT_ID">
         INSERT INTO CLIENT
-        (CLIENT_ID, CLIENT_NAME, CLIENT_BIRTH, CLIENT_GENDER, CLIENT_TEL, CLIENT_ADDRESS, CLIENT_MANAGER, REG_ID, MOD_ID, REG_DATE, MOD_DATE)
+        (CLIENT_ID, CLIENT_NAME, CLIENT_BIRTH, CLIENT_GENDER, CLIENT_TEL, CLIENT_ADDRESS, CLIENT_MANAGER,CLIENT_AGE,REG_ID, MOD_ID, REG_DATE, MOD_DATE)
         VALUES
-            ((TO_CHAR(SYSDATE, 'YYMM_') || LPAD(SEQ_CLIENT_NO.nextval, 8, '0')),#{CLIENT_NAME},TO_CHAR(#{CLIENT_BIRTH}),#{CLIENT_GENDER},#{CLIENT_TEL},#{CLIENT_ADDRESS},#{CLIENT_MANAGER},#{REG_ID},#{MOD_ID},SYSDATE,SYSDATE)
+            ((TO_CHAR(SYSDATE, 'YYMM_') || LPAD(SEQ_CLIENT_NO.nextval, 8, '0')),#{CLIENT_NAME},#{CLIENT_BIRTH},#{CLIENT_GENDER},#{CLIENT_TEL},#{CLIENT_ADDRESS},#{CLIENT_MANAGER},#{CLIENT_AGE},#{REG_ID},#{MOD_ID},SYSDATE,SYSDATE)
     </insert>
 <!--  상담관련   -->
     <select id="counselList" parameterType="map" resultType="map">
         SELECT
-            COUNSEL_NO,SUBSTR(COUNSEL_DATE, 1, INSTR(COUNSEL_DATE, 'T') - 1) AS COUNSEL_DATE
+            COUNSEL_NO,TO_CHAR(COUNSEL_DATE,'YYYY-MM-DD')AS COUNSEL_DATE
              ,COUNSEL_CONTENT,COUNSEL_TIME,COUNSEL_HOW,COUNSEL_STATUS
             ,co.CLIENT_ID,COUNSEL_MANAGER,co.REG_ID,co.MOD_ID,co.REG_DATE,co.MOD_DATE
         FROM
@@ -62,7 +51,7 @@
         ,COUNSEL_TIME,COUNSEL_CONTENT,CLIENT_ID
         ,COUNSEL_MANAGER,REG_ID, MOD_ID, REG_DATE, MOD_DATE)
         VALUES
-        (SEQ_COUNSEL_NO.nextval,TO_CHAR(#{COUNSEL_DATE}),#{COUNSEL_HOW}
+        (SEQ_COUNSEL_NO.nextval,#{COUNSEL_DATE},#{COUNSEL_HOW}
         ,#{COUNSEL_TIME},#{COUNSEL_CONTENT},#{CLIENT_ID}
         ,#{COUNSEL_MANAGER},#{REG_ID},#{MOD_ID},SYSDATE,SYSDATE)
     </insert>
